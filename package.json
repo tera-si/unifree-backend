@@ -4,7 +4,8 @@
   "description": "Backend for uniFree, an university free items exchange platform",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "cross-env NODE_ENV=dev nodemon index.js"
   },
   "author": "Tera-si",
   "license": "MIT",
