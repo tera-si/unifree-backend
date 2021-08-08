@@ -5,6 +5,8 @@ const app = express()
 const cors = require("cors")
 const mongoose = require("mongoose")
 const logger = require("./utils/logger")
+const middlewares = require("./utils/middlewares")
+const usersRouter = require("./controllers/users")
 
 logger.info(`Connecting to MongoDB @ ${envConfig.MONGODB_URI}`)
 
@@ -22,6 +24,13 @@ mongoose
   .catch(e => logger.error(`Error: Cannot connect to MongoDB\n${e.message}`))
 
 app.use(cors())
-app.use(express.json)
+app.use(express.json())
+app.use(middlewares.morgan("tiny"))
+app.use(middlewares.tokenExtractor)
+
+app.use("/api/users", usersRouter)
+
+app.use(middlewares.unknownEndpoint)
+app.use(middlewares.errorHandler)
 
 module.exports = app
