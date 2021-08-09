@@ -17,7 +17,7 @@ usersRouter.post("/", async (request, response) => {
     logger.error("Error: Password same as username")
     return response
       .status(400)
-      .json({ error: "Password must be be the same as username" })
+      .json({ error: "Password must not be the same as username" })
   }
 
   const salt = 10
@@ -25,7 +25,8 @@ usersRouter.post("/", async (request, response) => {
 
   const newUser = new User({
     username: body.username,
-    password: hashedPassword
+    password: hashedPassword,
+    items: body.items || []
   })
 
   const savedObj = await newUser.save()

@@ -1,5 +1,6 @@
 const mongoose = require("mongoose")
 const supertest = require("supertest")
+const bcrypt = require("bcrypt")
 const User = require("../models/user")
 const usersHelper = require("./users_helpers")
 const app = require("../app")
@@ -15,36 +16,196 @@ beforeEach(async () => {
 }, 20000)
 
 describe("GET from /api/users", () => {
-  test ("users are returned as JSON", async () => {
+  test("users are returned as JSON", async () => {
     await api
       .get("/api/users")
       .expect(200)
       .expect("Content-Type", /application\/json/)
   })
 
-  test ("successfully returned all users", async () => {
+  test("successfully returned all users", async () => {
     const response = await api.get("/api/users")
     expect(response.body).toHaveLength(usersHelper.initialUsers.length)
   })
 
-  test ("correctly returned first user", async () => {
+  test("correctly returned first user", async () => {
     const response = await api.get("/api/users")
 
     expect(response.body[0]).toBeDefined()
     expect(response.body[0].id).toBeDefined()
     expect(response.body[0].password).not.toBeDefined()
 
-    const expected = {
-      username: usersHelper.initialUsers[0].username,
-      items: usersHelper.initialUsers[0].items
+    expect(response.body[0].username).toEqual(usersHelper.initialUsers[0].username)
+    expect(response.body[0].items).toEqual(usersHelper.initialUsers[0].items)
+  })
+})
+
+describe("POST to /api/users", () => {
+  test("successfully added a valid user", async () => {
+    const newUser = {
+      username: "third_username",
+      password: "third_password",
+      items: []
     }
 
-    const received = {
-      username: response.body[0].username,
-      items: response.body[0].items
+    await api
+      .post("/api/users")
+      .send(newUser)
+      .expect(201)
+      .expect("Content-Type", /application\/json/)
+
+    const result = await usersHelper.allUsersFromDB()
+    expect(result).toHaveLength(usersHelper.initialUsers.length + 1)
+  })
+
+  test("new user is correctly stored in database", async () => {
+    const newUser = {
+      username: "third_username",
+      password: "third_password",
+      items: []
     }
 
-    expect(received).toEqual(expected)
+    await api
+      .post("/api/users")
+      .send(newUser)
+      .expect(201)
+      .expect("Content-Type", /application\/json/)
+
+    const storedInDB = await User.findOne({ username: newUser.username })
+    expect(storedInDB).toBeDefined()
+    expect(storedInDB.id).toBeDefined()
+
+    const checkPassword = await bcrypt.compare(newUser.password, storedInDB.password)
+    expect(checkPassword).toBe(true)
+
+    expect(storedInDB.username).toEqual(newUser.username)
+    expect(Array.from([...storedInDB.items])).toEqual(newUser.items)
+  })
+
+  test("items field default to empty array if not provided", async () => {
+    const newUser = {
+      username: "third_username",
+      password: "third_password"
+    }
+
+    await api
+      .post("/api/users")
+      .send(newUser)
+      .expect(201)
+      .expect("Content-Type", /application\/json/)
+
+    const storedInDB = await User.findOne({ username: newUser.username })
+    expect(storedInDB).toBeDefined()
+
+    expect(storedInDB.username).toEqual(newUser.username)
+    expect(Array.from([...storedInDB.items])).toEqual([])
+    expect(Array.from([...storedInDB.items])).toHaveLength(0)
+  })
+
+  test("reject missing username", async () => {
+    const newUser = {
+      password: "third_password",
+      items: []
+    }
+
+    const response = await api
+      .post("/api/users")
+      .send(newUser)
+      .expect(400)
+
+    expect(response.body.error).toContain("`username` is required")
+
+    const result = await usersHelper.allUsersFromDB()
+    expect(result).toHaveLength(usersHelper.initialUsers.length)
+  })
+
+  test("reject missing password", async () => {
+    const newUser = {
+      username: "third_password",
+      items: []
+    }
+
+    const response = await api
+      .post("/api/users")
+      .send(newUser)
+      .expect(400)
+
+    expect(response.body.error).toContain("Password must be at least 8 characters long")
+
+    const result = await usersHelper.allUsersFromDB()
+    expect(result).toHaveLength(usersHelper.initialUsers.length)
+  })
+
+  test("reject username shorter than 8 characters", async () => {
+    const newUser = {
+      username: "abc",
+      password: "third_password",
+      items: []
+    }
+
+    const response = await api
+      .post("/api/users")
+      .send(newUser)
+      .expect(400)
+
+    expect(response.body.error).toContain("`username` (`abc`) is shorter than")
+
+    const result = await usersHelper.allUsersFromDB()
+    expect(result).toHaveLength(usersHelper.initialUsers.length)
+  })
+
+  test("reject password shorter than 8 characters", async () => {
+    const newUser = {
+      username: "third_username",
+      password: "abc",
+      items: []
+    }
+
+    const response = await api
+      .post("/api/users")
+      .send(newUser)
+      .expect(400)
+
+    expect(response.body.error).toContain("Password must be at least 8 characters long")
+
+    const result = await usersHelper.allUsersFromDB()
+    expect(result).toHaveLength(usersHelper.initialUsers.length)
+  })
+
+  test("reject password same as username", async () => {
+    const newUser = {
+      username: "third_username",
+      password: "third_username",
+      items: []
+    }
+
+    const response = await api
+      .post("/api/users")
+      .send(newUser)
+      .expect(400)
+
+    expect(response.body.error).toContain("Password must not be the same as username")
+
+    const result = await usersHelper.allUsersFromDB()
+    expect(result).toHaveLength(usersHelper.initialUsers.length)
+  })
+
+  test("reject repeated username", async () => {
+    const newUser = {
+      username: "first_username",
+      password: "third_password",
+      items: []
+    }
+
+    const response = await api
+      .post("/api/users")
+      .send(newUser)
+      .expect(400)
+
+    expect(response.body.error).toContain("`username` to be unique")
+
+    const result = await usersHelper.allUsersFromDB()
+    expect(result).toHaveLength(usersHelper.initialUsers.length)
   })
 })
 

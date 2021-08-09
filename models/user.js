@@ -22,7 +22,7 @@ userSchema.set("toJSON", {
   transform: (document, returned) => {
     returned.id = returned._id.toString()
     delete returned._id
-    delete returned.__id
+    delete returned.__v
     delete returned.password
   }
 })
