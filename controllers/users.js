@@ -20,13 +20,6 @@ usersRouter.post("/", async (request, response) => {
       .json({ error: "Password must be be the same as username" })
   }
 
-  if (body.password !== body.confirmPassword) {
-    logger.error("Error: Password and confirm password does not match")
-    return response
-      .status(400)
-      .json({ error: "Password and confirm password does not match" })
-  }
-
   const salt = 10
   const hashedPassword = await bcrypt.hash(body.password, salt)
 
