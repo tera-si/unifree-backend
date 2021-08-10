@@ -54,4 +54,37 @@ usersRouter.delete("/:id", async (request, response) => {
   response.status(204).end()
 })
 
+usersRouter.put("/:id", async (request, response) => {
+  const body = request.body
+
+  const matchedUser = await User.findById(request.params.id)
+
+  let updatedPassword = undefined
+  let checkPassword = await bcrypt.compare(body.password, matchedUser.password)
+
+  if (!checkPassword) {
+    const salt = 10
+    updatedPassword = await bcrypt.hash(body.password, salt)
+  }
+  else {
+    updatedPassword = matchedUser.password
+  }
+
+  const result = await User.findByIdAndUpdate(
+    request.params.id,
+    {
+      username: body.username,
+      password: updatedPassword,
+      items: body.items || []
+    },
+    {
+      new: true,
+      runValidators: true,
+      context: "query"
+    }
+  )
+
+  response.status(200).json(result)
+})
+
 module.exports = usersRouter

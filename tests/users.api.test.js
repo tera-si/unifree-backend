@@ -257,6 +257,76 @@ describe("DELETE from /api/users/:id", () => {
   })
 })
 
+describe("PUT to /api/users/:id", () => {
+  const newUser = {
+    username: "third_username",
+    password: "third_password",
+    items: []
+  }
+
+  beforeEach(async () => {
+    User.findOneAndDelete({ username: "third_username" })
+
+    await api
+      .post("/api/users")
+      .send(newUser)
+  })
+
+  test("successfully updated username", async () => {
+    const oldMatchedUser = await User.findOne({ username: "third_username" })
+    expect(oldMatchedUser).not.toBe(null)
+
+    const updatedUser = {
+      username: "fourth_username",
+      password: newUser.password,
+      items: []
+    }
+
+    await api
+      .put(`/api/users/${oldMatchedUser._id}`)
+      .send(updatedUser)
+      .expect(200)
+      .expect("Content-Type", /application\/json/)
+
+    let newMatchedUser = await User.findOne({ username: "third_username" })
+    expect(newMatchedUser).toBe(null)
+
+    newMatchedUser = await User.findOne({ username: `${updatedUser.username}` })
+    expect(newMatchedUser).not.toBe(null)
+    expect(newMatchedUser.username).not.toEqual(oldMatchedUser.username)
+    expect(Array.from([...newMatchedUser.items])).toHaveLength(Array.from([...oldMatchedUser.items]).length)
+    expect(Array.from([...newMatchedUser.items])).toEqual(Array.from([...oldMatchedUser.items]))
+    expect(newMatchedUser.password).toEqual(oldMatchedUser.password)
+  })
+
+  test("successfully updated password", async () => {
+    const oldMatchedUser = await User.findOne({ username: "third_username" })
+    expect(oldMatchedUser).not.toBe(null)
+
+    const updatedUser = {
+      username: newUser.username,
+      password: "fourth_password",
+      items: []
+    }
+
+    await api
+      .put(`/api/users/${oldMatchedUser._id}`)
+      .send(updatedUser)
+      .expect(200)
+      .expect("Content-Type", /application\/json/)
+
+    const newMatchedUser = await User.findOne({ username: "third_username" })
+    expect(newMatchedUser).not.toBe(null)
+    expect(newMatchedUser.username).toEqual(oldMatchedUser.username)
+    expect(Array.from([...newMatchedUser.items])).toHaveLength(Array.from([...oldMatchedUser.items]).length)
+    expect(Array.from([...newMatchedUser.items])).toEqual(Array.from([...oldMatchedUser.items]))
+    expect(newMatchedUser.password).not.toEqual(oldMatchedUser.password)
+
+    const checkPassword = await bcrypt.compare(updatedUser.password, newMatchedUser.password)
+    expect(checkPassword).toBe(true)
+  })
+})
+
 afterAll(() => {
   mongoose.connection.close()
 })
