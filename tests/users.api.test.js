@@ -40,6 +40,37 @@ describe("GET from /api/users", () => {
   })
 })
 
+describe("GET from /api/users/:id", () => {
+  test("correctly returned first user", async () => {
+    const storedInDB = await usersHelper.allUsersFromDB()
+
+    const result = await api
+      .get(`/api/users/${storedInDB[0].id}`)
+      .expect(200)
+      .expect("Content-Type", /application\/json/)
+
+    expect(result.body.id).toEqual(storedInDB[0].id)
+    expect(result.body.username).toEqual(storedInDB[0].username)
+    expect(result.body.items).toEqual(Array.from([...storedInDB[0].items]))
+    expect(result.body.items).toHaveLength(0)
+    expect(result.body.password).not.toBeDefined()
+  })
+
+  test("reject non-existent ID with 404", async () => {
+    const id = await usersHelper.nonExistentUserID()
+
+    await api
+      .get(`/api/users/${id}`)
+      .expect(404)
+  })
+
+  test("reject invalid ID with 404", async () => {
+    await api
+      .get("/api/users/@@@")
+      .expect(404)
+  })
+})
+
 describe("POST to /api/users", () => {
   test("successfully added a valid user", async () => {
     const newUser = {
