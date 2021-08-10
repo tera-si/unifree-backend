@@ -240,6 +240,23 @@ describe("POST to /api/users", () => {
   })
 })
 
+describe("DELETE from /api/users/:id", () => {
+  test("successfully deleted first user from database", async () => {
+    let matchedUsers = await User.find({ username: "first_username" })
+
+    await api
+      .delete(`/api/users/${matchedUsers[0]._id}`)
+      .expect(204)
+
+    const storedInDB = await usersHelper.allUsersFromDB()
+    expect(storedInDB).toHaveLength(usersHelper.initialUsers.length - 1)
+
+    matchedUsers = await User.find({ username: "first_username" })
+    expect(matchedUsers).toHaveLength(0)
+    expect(matchedUsers[0]).not.toBeDefined()
+  })
+})
+
 afterAll(() => {
   mongoose.connection.close()
 })
