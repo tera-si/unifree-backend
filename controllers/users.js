@@ -10,14 +10,14 @@ usersRouter.post("/", async (request, response) => {
     logger.error("Error: Password too short")
     return response
       .status(400)
-      .json({ error: "Password must be at least 8 characters long" })
+      .json({ error: "password must be at least 8 characters long" })
   }
 
   if (body.password === body.username) {
     logger.error("Error: Password same as username")
     return response
       .status(400)
-      .json({ error: "Password must not be the same as username" })
+      .json({ error: "password must not be the same as username" })
   }
 
   const salt = 10

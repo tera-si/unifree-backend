@@ -11,7 +11,8 @@ const errorHandler = (error, request, response, next) => {
   logger.error(error.message)
 
   if (error.name === "ValidationError") {
-    return response.status(400).json({ error: error.message })
+    const index = error.message.lastIndexOf(":")
+    return response.status(400).json({ error: error.message.substring(index + 2) })
   }
   else if (error.name === "CastError") {
     return response.status(404).json({ error: "unrecognized ID" })

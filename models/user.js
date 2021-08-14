@@ -4,13 +4,13 @@ const uniqueValidator = require("mongoose-unique-validator")
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
-    required: true,
+    required: [true, "username is required"],
     unique: true,
-    minLength: 8
+    minLength: [8, "username must be at least 8 characters long"]
   },
   password: {
     type: String,
-    required: true
+    required: [true, "password is required"]
   },
   items: [{
     type: mongoose.Schema.Types.ObjectId,
@@ -27,7 +27,10 @@ userSchema.set("toJSON", {
   }
 })
 
-userSchema.plugin(uniqueValidator)
+userSchema.plugin(
+  uniqueValidator,
+  { message: `{PATH} already taken` }
+)
 
 const User = mongoose.model("User", userSchema)
 module.exports = User
