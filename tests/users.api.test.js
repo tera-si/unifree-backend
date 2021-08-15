@@ -9,6 +9,9 @@ const api = supertest(app)
 beforeEach(async () => {
   await User.deleteMany({})
 
+  // Save directly to MongoDB instead of via POST because POST has not been
+  // tested yet.
+  // Thus, the stored password of these users are NOT hashed
   for (let user of usersHelper.initialUsers) {
     const userObj = new User(user)
     await userObj.save()
@@ -257,6 +260,7 @@ describe("DELETE from /api/users/:id", () => {
   })
 })
 
+// These tests require POST to function correctly
 describe("PUT to /api/users/:id", () => {
   const newUser = {
     username: "third_username",
@@ -267,6 +271,8 @@ describe("PUT to /api/users/:id", () => {
   beforeEach(async () => {
     User.findOneAndDelete({ username: "third_username" })
 
+    // Use POST instead of saving directly to MongoDB so the stored password is
+    // hashed
     await api
       .post("/api/users")
       .send(newUser)
@@ -291,6 +297,7 @@ describe("PUT to /api/users/:id", () => {
     let newMatchedUser = await User.findOne({ username: "third_username" })
     expect(newMatchedUser).toBe(null)
 
+    // Only username is changed and nothing else
     newMatchedUser = await User.findOne({ username: `${updatedUser.username}` })
     expect(newMatchedUser).not.toBe(null)
     expect(newMatchedUser.username).not.toEqual(oldMatchedUser.username)
@@ -315,6 +322,7 @@ describe("PUT to /api/users/:id", () => {
       .expect(200)
       .expect("Content-Type", /application\/json/)
 
+    // Only password is changed and nothing else
     const newMatchedUser = await User.findOne({ username: "third_username" })
     expect(newMatchedUser).not.toBe(null)
     expect(newMatchedUser.username).toEqual(oldMatchedUser.username)
