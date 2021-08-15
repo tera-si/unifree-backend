@@ -7,6 +7,7 @@ const mongoose = require("mongoose")
 const logger = require("./utils/logger")
 const middlewares = require("./utils/middlewares")
 const usersRouter = require("./controllers/users")
+const loginRouter = require("./controllers/login")
 
 logger.info(`Connecting to MongoDB @ ${envConfig.MONGODB_URI}`)
 
@@ -29,6 +30,7 @@ app.use(middlewares.morgan("tiny"))
 app.use(middlewares.tokenExtractor)
 
 app.use("/api/users", usersRouter)
+app.use("/api/login", loginRouter)
 
 app.use(middlewares.unknownEndpoint)
 app.use(middlewares.errorHandler)
