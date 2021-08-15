@@ -147,7 +147,7 @@ describe("POST to /api/users", () => {
       .send(newUser)
       .expect(400)
 
-    expect(response.body.error).toContain("`username` is required")
+    expect(response.body.error).toContain("username is required")
 
     const result = await usersHelper.allUsersFromDB()
     expect(result).toHaveLength(usersHelper.initialUsers.length)
@@ -164,7 +164,7 @@ describe("POST to /api/users", () => {
       .send(newUser)
       .expect(400)
 
-    expect(response.body.error).toContain("Password must be at least 8 characters long")
+    expect(response.body.error).toContain("password must be at least 8 characters long")
 
     const result = await usersHelper.allUsersFromDB()
     expect(result).toHaveLength(usersHelper.initialUsers.length)
@@ -182,7 +182,7 @@ describe("POST to /api/users", () => {
       .send(newUser)
       .expect(400)
 
-    expect(response.body.error).toContain("`username` (`abc`) is shorter than")
+    expect(response.body.error).toContain("username must be at least 8 characters long")
 
     const result = await usersHelper.allUsersFromDB()
     expect(result).toHaveLength(usersHelper.initialUsers.length)
@@ -200,7 +200,7 @@ describe("POST to /api/users", () => {
       .send(newUser)
       .expect(400)
 
-    expect(response.body.error).toContain("Password must be at least 8 characters long")
+    expect(response.body.error).toContain("password must be at least 8 characters long")
 
     const result = await usersHelper.allUsersFromDB()
     expect(result).toHaveLength(usersHelper.initialUsers.length)
@@ -218,7 +218,7 @@ describe("POST to /api/users", () => {
       .send(newUser)
       .expect(400)
 
-    expect(response.body.error).toContain("Password must not be the same as username")
+    expect(response.body.error).toContain("password must not be the same as username")
 
     const result = await usersHelper.allUsersFromDB()
     expect(result).toHaveLength(usersHelper.initialUsers.length)
@@ -236,7 +236,7 @@ describe("POST to /api/users", () => {
       .send(newUser)
       .expect(400)
 
-    expect(response.body.error).toContain("`username` to be unique")
+    expect(response.body.error).toContain("username already taken")
 
     const result = await usersHelper.allUsersFromDB()
     expect(result).toHaveLength(usersHelper.initialUsers.length)
