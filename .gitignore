@@ -3,4 +3,5 @@
 /.vscode
 /requests
 .rest
-/public
+/public/uploads
+/tests/images
