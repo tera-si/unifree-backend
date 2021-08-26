@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken")
 const morgan = require("morgan")
 const logger = require("./logger")
+const multer = require("multer")
 const User = require("../models/user")
 
 const unknownEndpoint = (request, response) => {
@@ -20,6 +21,26 @@ const errorHandler = (error, request, response, next) => {
 
   next(error)
 }
+
+const storageOptions = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./public/uploads/items/images/")
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "_" + file.originalname)
+  }
+})
+
+const multerUpload = multer({
+  storage: storageOptions,
+  fileFilter(req, file, cb) {
+    if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+      cb(new Error("Only jpg, jpeg, png, and gif files are accepted"))
+    }
+
+    cb(null, true)
+  }
+}).array("item-images", 8)
 
 const tokenExtractor = (request, response, next) => {
   const auth = request.get("Authorization")
@@ -56,6 +77,7 @@ const middlewares = {
   morgan,
   unknownEndpoint,
   errorHandler,
+  multerUpload,
   tokenExtractor,
   userExtractor,
 }

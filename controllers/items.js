@@ -1,29 +1,11 @@
 const itemsRouter = require("express").Router()
-const multer = require("multer")
 const userExtractor = require("../utils/middlewares").userExtractor
+const multerUpload = require("../utils/middlewares").multerUpload
 const Item = require("../models/item")
 
-const storageOptions = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "./public/uploads/items/images/")
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "_" + file.originalname)
-  }
-})
+//! Warning: this file has not yet been thru unit testing !//
 
-const upload = multer({
-  storage: storageOptions,
-  fileFilter(req, file, cb) {
-    if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-      cb(new Error("Only jpg, jpeg, png, and gif files are accepted"))
-    }
-
-    cb(null, true)
-  }
-}).array("item-images", 8)
-
-itemsRouter.post("/", [upload, userExtractor], async (request, response) => {
+itemsRouter.post("/", [multerUpload, userExtractor], async (request, response) => {
   const user = request.user
   if (!user) {
     return response.status(401).json({ error: "missing or invalid token" })
@@ -67,6 +49,25 @@ itemsRouter.get("/:id", async (request, response) => {
   else {
     response.status(404).end()
   }
+})
+
+itemsRouter.delete("/:id", userExtractor, async (request, response) => {
+  const user = request.user
+  if (!user) {
+    return response.status(401).json({ error: "missing or invalid token" })
+  }
+
+  const matchedItem = await Item.findById(request.params.id)
+  if (!matchedItem) {
+    response.status(404).end()
+  }
+
+  if (matchedItem.postedBy !== user._id) {
+    return response.status(403).json({ error: "not authorized for this action" })
+  }
+
+  await matchedItem.delete()
+  response.status(204).end()
 })
 
 module.exports = itemsRouter
