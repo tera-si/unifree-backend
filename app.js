@@ -27,6 +27,7 @@ mongoose
 
 app.use(cors())
 app.use(express.json())
+app.use(express.static("public"))
 app.use(middlewares.morgan("tiny"))
 app.use(middlewares.tokenExtractor)
 
@@ -38,3 +39,7 @@ app.use(middlewares.unknownEndpoint)
 app.use(middlewares.errorHandler)
 
 module.exports = app
+
+// Reminder:
+// To fetch the uploaded item images, access
+// localhost:${PORT}/uploads/items/images/${filename}
