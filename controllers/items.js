@@ -23,8 +23,6 @@ const upload = multer({
   }
 }).array("item-images", 8)
 
-// TODO: route for GET items and individual item
-// TODO: change it so that no images will be uploaded if no token were provided
 itemsRouter.post("/", [upload, userExtractor], async (request, response) => {
   const user = request.user
   if (!user) {
@@ -53,6 +51,22 @@ itemsRouter.post("/", [upload, userExtractor], async (request, response) => {
   await user.save()
 
   return response.status(201).json(result)
+})
+
+itemsRouter.get("/", async (request, response) => {
+  const allItems = await Item.find({})
+  response.json(allItems)
+})
+
+itemsRouter.get("/:id", async (request, response) => {
+  const matchedItem = await Item.findById(request.params.id)
+
+  if (matchedItem) {
+    response.status(200).json(matchedItem)
+  }
+  else {
+    response.status(404).end()
+  }
 })
 
 module.exports = itemsRouter
