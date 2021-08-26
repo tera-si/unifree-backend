@@ -79,6 +79,14 @@ const itemSchema = new mongoose.Schema({
   imagePaths: {
     type: [String],
     required: [true, "paths item images are required"],
+  },
+  datePosted: {
+    type: Date,
+    required: true,
+  },
+  postedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
   }
 })
 

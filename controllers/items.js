@@ -43,7 +43,9 @@ itemsRouter.post("/", [upload, userExtractor], async (request, response) => {
     shipping: request.body["item-shipping"],
     meet: request.body["item-meet"],
     description: request.body["item-description"],
-    imagePaths
+    imagePaths,
+    datePosted: new Date(),
+    postedBy: user._id
   })
 
   const result = await item.save()
