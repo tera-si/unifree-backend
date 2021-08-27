@@ -5,3 +5,4 @@
 .rest
 /public/uploads
 /tests/images
+tests/non-image.txt

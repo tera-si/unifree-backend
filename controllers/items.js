@@ -11,6 +11,10 @@ itemsRouter.post("/", [multerUpload, userExtractor], async (request, response) =
     return response.status(401).json({ error: "missing or invalid token" })
   }
 
+  if (!request.files || request.files.length <= 0) {
+    return response.status(400).json({ error: "missing images of item" })
+  }
+
   const imagePaths = []
   for (let file of request.files) {
     imagePaths.push(file.filename)
