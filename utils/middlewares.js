@@ -39,9 +39,9 @@ const storageOptions = multer.diskStorage({
 
 const multerUpload = multer({
   storage: storageOptions,
-  fileFilter(req, file, cb) {
+  fileFilter: (req, file, cb) => {
     if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-      cb(new Error("Only jpg, jpeg, png, and gif files are accepted"))
+      return cb(new Error("Only jpg, jpeg, png, and gif files are accepted"), false)
     }
 
     cb(null, true)
