@@ -16,7 +16,7 @@ const errorHandler = (error, request, response, next) => {
     return response.status(400).json({ error: error.message.substring(index + 2) })
   }
   else if (error.name === "CastError") {
-    return response.status(404).json({ error: "unrecognized ID" })
+    return response.status(400).json({ error: "unrecognized ID" })
   }
 
   next(error)

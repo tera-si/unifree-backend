@@ -67,10 +67,10 @@ describe("GET from /api/users/:id", () => {
       .expect(404)
   })
 
-  test("reject invalid ID with 404", async () => {
+  test("reject invalid ID with 400", async () => {
     await api
       .get("/api/users/@@@")
-      .expect(404)
+      .expect(400)
   })
 })
 
