@@ -3,8 +3,6 @@ const userExtractor = require("../utils/middlewares").userExtractor
 const multerUpload = require("../utils/middlewares").multerUpload
 const Item = require("../models/item")
 
-//! Warning: this file has not yet been thru unit testing !//
-
 itemsRouter.post("/", [multerUpload, userExtractor], async (request, response) => {
   const user = request.user
   if (!user) {
@@ -13,6 +11,14 @@ itemsRouter.post("/", [multerUpload, userExtractor], async (request, response) =
 
   if (!request.files || request.files.length <= 0) {
     return response.status(400).json({ error: "missing images of item" })
+  }
+
+  if (
+    (!request.body["item-shipping"] || request.body["item-shipping"] === "false")
+    &&
+    (!request.body["item-meet"] || request.body["item-meet"] === "false")
+  ) {
+    return response.status(400).json({ error: "at least one exchange method must be checked" })
   }
 
   const imagePaths = []
