@@ -316,6 +316,31 @@ describe("POST to /api/items", () => {
     const result = await itemsHelper.allItemsFromDB()
     expect(result).toHaveLength(itemsHelper.initialItems.length)
   })
+
+  test("reject post request with more than 8 images", async () => {
+    await api
+      .post("/api/items")
+      .set("Authorization", `bearer ${tokens[0]}`)
+      .field("item-name", "vintage film camera")
+      .field("item-category", "Camera")
+      .field("item-condition", "Visible wear")
+      .field("item-shipping", "false")
+      .field("item-meet", "true")
+      .field("item-description", "No idea if it works.")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1203803.jpg")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1983037.jpg")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1983037.jpg")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1983037.jpg")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1983037.jpg")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1983037.jpg")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1983037.jpg")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1983037.jpg")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1983037.jpg")
+      .expect(400)
+
+    const result = await itemsHelper.allItemsFromDB()
+    expect(result).toHaveLength(itemsHelper.initialItems.length)
+  })
 })
 
 // TODO: PUT and DELETE item

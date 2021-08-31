@@ -21,6 +21,9 @@ const errorHandler = (error, request, response, next) => {
   else if (error.message === "Only jpg, jpeg, png, and gif files are accepted") {
     return response.status(400).json({ error: "Only jpg, jpeg, png, and gif files are accepted" })
   }
+  else if (error.message === "Unexpected field") {
+    return response.status(400).json({ error: "Unexpected files received" })
+  }
   else if (error.name === "JsonWebTokenError") {
     return response.status(401).json({ error: "invalid token" })
   }
