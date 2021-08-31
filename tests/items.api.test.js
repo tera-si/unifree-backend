@@ -230,6 +230,42 @@ describe("POST to /api/items", () => {
     expect(result).toHaveLength(itemsHelper.initialItems.length)
   })
 
+  test("reject post request with invalid item category", async () => {
+    await api
+      .post("/api/items")
+      .set("Authorization", `bearer ${tokens[0]}`)
+      .field("item-name", "vintage film camera")
+      .field("item-category", "abc1234")
+      .field("item-condition", "Visible wear")
+      .field("item-shipping", "false")
+      .field("item-meet", "true")
+      .field("item-description", "No idea if it works.")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1203803.jpg")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1983037.jpg")
+      .expect(400)
+
+    const result = await itemsHelper.allItemsFromDB()
+    expect(result).toHaveLength(itemsHelper.initialItems.length)
+  })
+
+  test("reject post request with invalid item condition", async () => {
+    await api
+      .post("/api/items")
+      .set("Authorization", `bearer ${tokens[0]}`)
+      .field("item-name", "vintage film camera")
+      .field("item-category", "Camera")
+      .field("item-condition", "abc1234")
+      .field("item-shipping", "false")
+      .field("item-meet", "true")
+      .field("item-description", "No idea if it works.")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1203803.jpg")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1983037.jpg")
+      .expect(400)
+
+    const result = await itemsHelper.allItemsFromDB()
+    expect(result).toHaveLength(itemsHelper.initialItems.length)
+  })
+
   test("reject post request without item images", async () => {
     await api
       .post("/api/items")
@@ -263,6 +299,8 @@ describe("POST to /api/items", () => {
     expect(result).toHaveLength(itemsHelper.initialItems.length)
   })
 })
+
+// TODO: PUT and DELETE item
 
 afterAll(() => {
   mongoose.connection.close()
