@@ -46,7 +46,7 @@ itemsRouter.post("/", [multerUpload, userExtractor], async (request, response) =
 })
 
 itemsRouter.get("/", async (request, response) => {
-  const allItems = await Item.find({})
+  const allItems = await Item.find({}).populate("postedBy", { username: 1, _id: 1 })
   response.json(allItems)
 })
 

@@ -31,6 +31,8 @@ app.use(express.static("public"))
 app.use(middlewares.morgan("tiny"))
 app.use(middlewares.tokenExtractor)
 
+// TODO: check if there are any other places that needs to use mongoose.populate
+// TODO: also review the current populate() calls
 app.use("/api/users", usersRouter)
 app.use("/api/login", loginRouter)
 app.use("/api/items", itemsRouter)
