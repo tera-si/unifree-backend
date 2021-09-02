@@ -51,7 +51,7 @@ itemsRouter.get("/", async (request, response) => {
 })
 
 itemsRouter.get("/:id", async (request, response) => {
-  const matchedItem = await Item.findById(request.params.id)
+  const matchedItem = await Item.findById(request.params.id).populate("postedBy", { username: 1, _id: 1 })
 
   if (matchedItem) {
     response.status(200).json(matchedItem)

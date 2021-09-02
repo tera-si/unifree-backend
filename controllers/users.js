@@ -34,12 +34,12 @@ usersRouter.post("/", async (request, response) => {
 })
 
 usersRouter.get("/", async (request, response) => {
-  const users = await User.find({}).populate("items")
+  const users = await User.find({}).populate("items", { _id: 1, name: 1, category: 1, condition: 1 })
   response.json(users)
 })
 
 usersRouter.get("/:id", async (request, response) => {
-  const matchedUser = await User.findById(request.params.id)
+  const matchedUser = await User.findById(request.params.id).populate("items", { _id: 1, name: 1, category: 1, condition: 1 })
 
   if (matchedUser) {
     response.status(200).json(matchedUser)
