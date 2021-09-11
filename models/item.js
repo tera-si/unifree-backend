@@ -87,7 +87,11 @@ const itemSchema = new mongoose.Schema({
   postedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User"
-  }
+  },
+  availability: {
+    type: Boolean,
+    required: [true, "item availability is required"],
+  },
 })
 
 itemSchema.set("toJSON", {
