@@ -32,7 +32,7 @@ app.use(middlewares.morgan("tiny"))
 app.use(middlewares.tokenExtractor)
 
 // TODO: check if there are any other places that needs to use mongoose.populate
-// TODO: also review the current populate() calls
+// TODO: also review the current populate() calls, and tests
 app.use("/api/users", usersRouter)
 app.use("/api/login", loginRouter)
 app.use("/api/items", itemsRouter)
@@ -41,7 +41,3 @@ app.use(middlewares.unknownEndpoint)
 app.use(middlewares.errorHandler)
 
 module.exports = app
-
-// Reminder:
-// To fetch the uploaded item images, access
-// localhost:${PORT}/uploads/items/images/${filename}
