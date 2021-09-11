@@ -3,6 +3,16 @@ const usersRouter = require("express").Router()
 const logger = require("../utils/logger")
 const User = require("../models/user")
 
+const populateConfig = {
+  _id: 1,
+  name: 1,
+  category: 1,
+  condition: 1,
+  imagePaths: 1,
+  datePosted: 1,
+  availability: 1,
+}
+
 usersRouter.post("/", async (request, response) => {
   const body = request.body
 
@@ -34,12 +44,12 @@ usersRouter.post("/", async (request, response) => {
 })
 
 usersRouter.get("/", async (request, response) => {
-  const users = await User.find({}).populate("items", { _id: 1, name: 1, category: 1, condition: 1, imagePaths: 1, datePosted: 1 })
+  const users = await User.find({}).populate("items", populateConfig)
   response.json(users)
 })
 
 usersRouter.get("/:id", async (request, response) => {
-  const matchedUser = await User.findById(request.params.id).populate("items", { _id: 1, name: 1, category: 1, condition: 1, imagePaths: 1, datePosted: 1 })
+  const matchedUser = await User.findById(request.params.id).populate("items", populateConfig)
 
   if (matchedUser) {
     response.status(200).json(matchedUser)
