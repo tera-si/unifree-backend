@@ -35,7 +35,8 @@ itemsRouter.post("/", [multerUpload, userExtractor], async (request, response) =
     description: request.body["item-description"],
     imagePaths,
     datePosted: new Date(),
-    postedBy: user._id
+    postedBy: user._id,
+    availability: true
   })
 
   const result = await item.save()
@@ -61,6 +62,8 @@ itemsRouter.get("/:id", async (request, response) => {
   }
 })
 
+// TODO: not yet tested
+//? delete associated pictures ?//
 itemsRouter.delete("/:id", userExtractor, async (request, response) => {
   const user = request.user
   if (!user) {
@@ -69,7 +72,7 @@ itemsRouter.delete("/:id", userExtractor, async (request, response) => {
 
   const matchedItem = await Item.findById(request.params.id)
   if (!matchedItem) {
-    response.status(404).end()
+    response.status(404).json({ error: "no such item" })
   }
 
   if (matchedItem.postedBy !== user._id) {
@@ -78,6 +81,57 @@ itemsRouter.delete("/:id", userExtractor, async (request, response) => {
 
   await matchedItem.delete()
   response.status(204).end()
+})
+
+// TODO: not yet tested
+itemsRouter.put("/:id", userExtractor, async (request, response) => {
+  const user = request.user
+  if (!user) {
+    return response.status(401).json({ error: "missing or invalid token" })
+  }
+
+  const matchedItem = await Item.findById(request.params.id)
+  if (!matchedItem) {
+    return response.status(404).json({ error: "no such item" })
+  }
+
+  if (JSON.stringify(user._id) !== JSON.stringify(matchedItem.postedBy)) {
+    return response.status(403).json({ error: "not authorized for this action" })
+  }
+
+  let updatedAvailability = matchedItem.availability
+  if (request.body["availability"] !== null || request.body["availability"] !== undefined) {
+    updatedAvailability = request.body["availability"]
+  }
+
+  const updatedItem = {
+    name: request.body["item-name"] || matchedItem.name,
+    category: request.body["item-category"] || matchedItem.category,
+    condition: request.body["item-condition"] || matchedItem.condition,
+    shipping: request.body["item-shipping"] || matchedItem.shipping,
+    meet: request.body["item-meet"] || matchedItem.meet,
+    description: request.body["item-description"] || matchedItem.description,
+    imagePaths: request.body["imagePaths"] || matchedItem.imagePaths,
+    datePosted: matchedItem.datePosted,
+    postedBy: matchedItem.postedBy,
+    availability: updatedAvailability,
+  }
+
+  if (!updatedItem.shipping && !updatedItem.meet) {
+    return response.status(400).json({ error: "at least one exchange method must be checked" })
+  }
+
+  const result = await Item.findByIdAndUpdate(
+    request.params.id,
+    updatedItem,
+    {
+      new: true,
+      runValidators: true,
+      context: "query"
+    }
+  )
+
+  response.status(200).json(result)
 })
 
 module.exports = itemsRouter
