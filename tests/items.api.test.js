@@ -48,7 +48,7 @@ describe("GET from /api/items", () => {
     expect(response.body).toHaveLength(itemsHelper.initialItems.length)
   })
 
-  test("correct returned first item", async () => {
+  test("correctly returned first item", async () => {
     const response = await api.get("/api/items")
     expect(response.body[0]).toBeDefined()
 
@@ -136,6 +136,7 @@ describe("POST to /api/items", () => {
     expect(storedInDB.imagePaths[0]).toContain("vintage-camera-pexels-alex-andrews-1203803.jpg")
     expect(storedInDB.imagePaths[1]).toContain("vintage-camera-pexels-alex-andrews-1983037.jpg")
     expect(storedInDB.datePosted).toBeDefined()
+    expect(storedInDB.availability).toBe(true)
 
     const matchedUser = await User.findOne({ username: userHelper.initialUsers[0].username })
     expect(storedInDB.postedBy).toEqual(matchedUser._id)
@@ -343,7 +344,138 @@ describe("POST to /api/items", () => {
   })
 })
 
-// TODO: PUT and DELETE item
+//* requires GET from /api/items and POST to /api/items to be functional and correct *//
+describe("PUT to /api/items/:id", () => {
+  test("correctly update item availability with valid token", async () => {
+    const objectID = []
+    const response = await api
+      .post("/api/items")
+      .set("Authorization", `bearer ${tokens[0]}`)
+      .field("item-name", "vintage film camera")
+      .field("item-category", "Camera")
+      .field("item-condition", "Visible wear")
+      .field("item-shipping", "false")
+      .field("item-meet", "true")
+      .field("item-description", "No idea if it works.")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1203803.jpg")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1983037.jpg")
+
+    objectID.push(JSON.parse(response.text).id)
+
+    // Fetching from the GET endpoint instead of using Item.findById() to
+    // simulate how the PUT endpoint will be actually used in the application:
+    // User sees data returned from the GET endpoint instead of the mongoDB
+    // client
+    let originalObject = await api.get(`/api/items/${objectID[0]}`)
+      .expect(200)
+      .expect("Content-Type", /application\/json/)
+
+    originalObject = JSON.parse(originalObject.text)
+    expect(originalObject).toBeDefined()
+    expect(originalObject.availability).toBe(true)
+
+    const updatedObject = {
+      ...originalObject,
+      availability: false,
+    }
+
+    await api
+      .put(`/api/items/${objectID[0]}`)
+      .set("Authorization", `bearer ${tokens[0]}`)
+      .send(updatedObject)
+      .expect(200)
+      .expect("Content-Type", /application\/json/)
+
+    updatedObject.postedBy = originalObject.postedBy.id
+
+    let matchedObject = await Item.findById(objectID[0])
+    matchedObject = JSON.parse(JSON.stringify(matchedObject))
+    matchedObject.datePosted = new Date(matchedObject.datePosted).toISOString()
+
+    expect(matchedObject).toBeDefined()
+    expect(matchedObject).toEqual(updatedObject)
+  })
+
+  test("reject update without token", async () => {
+    const objectID = []
+    const response = await api
+      .post("/api/items")
+      .set("Authorization", `bearer ${tokens[0]}`)
+      .field("item-name", "vintage film camera")
+      .field("item-category", "Camera")
+      .field("item-condition", "Visible wear")
+      .field("item-shipping", "false")
+      .field("item-meet", "true")
+      .field("item-description", "No idea if it works.")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1203803.jpg")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1983037.jpg")
+
+    objectID.push(JSON.parse(response.text).id)
+
+    let originalObject = await api.get(`/api/items/${objectID[0]}`)
+    originalObject = JSON.parse(originalObject.text)
+    expect(originalObject.availability).toBe(true)
+
+
+    const updatedObject = {
+      ...originalObject,
+      availability: false,
+    }
+
+    await api
+      .put(`/api/items/${objectID[0]}`)
+      .send(updatedObject)
+      .expect(401)
+
+    originalObject.postedBy = originalObject.postedBy.id
+
+    let matchedObject = await Item.findById(objectID[0])
+    matchedObject = JSON.parse(JSON.stringify(matchedObject))
+
+    expect(matchedObject).toEqual(originalObject)
+  })
+
+  test("reject update with non-matching token", async () => {
+    const objectID = []
+    const response = await api
+      .post("/api/items")
+      .set("Authorization", `bearer ${tokens[0]}`)
+      .field("item-name", "vintage film camera")
+      .field("item-category", "Camera")
+      .field("item-condition", "Visible wear")
+      .field("item-shipping", "false")
+      .field("item-meet", "true")
+      .field("item-description", "No idea if it works.")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1203803.jpg")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1983037.jpg")
+
+    objectID.push(JSON.parse(response.text).id)
+
+    let originalObject = await api.get(`/api/items/${objectID[0]}`)
+    originalObject = JSON.parse(originalObject.text)
+    expect(originalObject.availability).toBe(true)
+
+    const updatedObject = {
+      ...originalObject,
+      availability: false,
+    }
+
+    await api
+      .put(`/api/items/${objectID[0]}`)
+      .set("Authorization", `bearer ${tokens[1]}`)
+      .send(updatedObject)
+      .expect(403)
+
+    originalObject.postedBy = originalObject.postedBy.id
+
+    let matchedObject = await Item.findById(objectID[0])
+    matchedObject = JSON.parse(JSON.stringify(matchedObject))
+
+    expect(matchedObject).toEqual(originalObject)
+  })
+})
+
+// TODO: DELETE item
 
 afterAll(() => {
   mongoose.connection.close()

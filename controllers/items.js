@@ -100,7 +100,7 @@ itemsRouter.put("/:id", userExtractor, async (request, response) => {
   }
 
   let updatedAvailability = matchedItem.availability
-  if (request.body["availability"] !== null || request.body["availability"] !== undefined) {
+  if (request.body["availability"] !== null && request.body["availability"] !== undefined) {
     updatedAvailability = request.body["availability"]
   }
 

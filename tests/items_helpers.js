@@ -12,7 +12,8 @@ const initialItems = [
       "pink-slippers-pexels-cottonbro-5874855.jpg",
       "pink-slippers-pexels-ron-lach-7825422.jpg"
     ],
-    datePosted: new Date()
+    datePosted: new Date(),
+    availability: true
   },
   {
     name: "2021 Schedule Book",
@@ -24,7 +25,8 @@ const initialItems = [
     imagePaths: [
       "schedule-book-pexels-olya-kobruseva-5417666.jpg"
     ],
-    datePosted: new Date()
+    datePosted: new Date(),
+    availability: true
   }
 ]
 
@@ -44,7 +46,8 @@ const nonExistentItemID = async () => {
     imagePaths: [
       "will_be_deleted.png"
     ],
-    datePosted: new Date()
+    datePosted: new Date(),
+    availability: true
   })
 
   await newItem.save()
