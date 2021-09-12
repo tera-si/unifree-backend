@@ -83,7 +83,6 @@ itemsRouter.delete("/:id", userExtractor, async (request, response) => {
   response.status(204).end()
 })
 
-// TODO: not yet tested
 itemsRouter.put("/:id", userExtractor, async (request, response) => {
   const user = request.user
   if (!user) {
