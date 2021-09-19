@@ -66,8 +66,6 @@ usersRouter.delete("/:id", async (request, response) => {
   response.status(204).end()
 })
 
-// TODO: 1. use userExtractor middleware
-// TODO: 2. ensure that only user with matching id can update user info
 usersRouter.put("/:id", userExtractor, async (request, response) => {
   const user = request.user
   if (!user) {
