@@ -345,6 +345,34 @@ describe("PUT to /api/users/:id", () => {
     expect(checkPassword).toBe(true)
   })
 
+  test("update default to original values if certain fields are not provided", async () => {
+    const oldMatchedUser = await User.findOne({ username: "third_username" })
+    expect(oldMatchedUser).not.toBe(null)
+
+    const updatedUser = {
+      oldPassword: newUser.password,
+      password: "fourth_password",
+    }
+
+    await api
+      .put(`/api/users/${oldMatchedUser._id}`)
+      .set("Authorization", `bearer ${tokens[0]}`)
+      .send(updatedUser)
+      .expect(200)
+      .expect("Content-Type", /application\/json/)
+
+    // Everything except password should be stays the same
+    const newMatchedUser = await User.findOne({ username: "third_username" })
+    expect(newMatchedUser).not.toBe(null)
+    expect(newMatchedUser.username).toEqual(oldMatchedUser.username)
+    expect(Array.from([...newMatchedUser.items])).toHaveLength(Array.from([...oldMatchedUser.items]).length)
+    expect(Array.from([...newMatchedUser.items])).toEqual(Array.from([...oldMatchedUser.items]))
+    expect(newMatchedUser.password).not.toEqual(oldMatchedUser.password)
+
+    const checkPassword = await bcrypt.compare(updatedUser.password, newMatchedUser.password)
+    expect(checkPassword).toBe(true)
+  })
+
   test("reject update with matching token but incorrect original password", async () => {
     const oldMatchedUser = await User.findOne({ username: "third_username" })
     expect(oldMatchedUser).not.toBe(null)
