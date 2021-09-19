@@ -285,12 +285,13 @@ describe("PUT to /api/users/:id", () => {
     tokens.push(response.body.token)
   })
 
-  test("successfully updated username with matching token", async () => {
+  test("successfully updated username with matching token and original password", async () => {
     const oldMatchedUser = await User.findOne({ username: "third_username" })
     expect(oldMatchedUser).not.toBe(null)
 
     const updatedUser = {
       username: "fourth_username",
+      oldPassword: newUser.password,
       password: newUser.password,
       items: []
     }
@@ -314,12 +315,13 @@ describe("PUT to /api/users/:id", () => {
     expect(newMatchedUser.password).toEqual(oldMatchedUser.password)
   })
 
-  test("successfully updated password with matching token", async () => {
+  test("successfully updated password with matching token and original password", async () => {
     const oldMatchedUser = await User.findOne({ username: "third_username" })
     expect(oldMatchedUser).not.toBe(null)
 
     const updatedUser = {
       username: newUser.username,
+      oldPassword: newUser.password,
       password: "fourth_password",
       items: []
     }
@@ -341,6 +343,31 @@ describe("PUT to /api/users/:id", () => {
 
     const checkPassword = await bcrypt.compare(updatedUser.password, newMatchedUser.password)
     expect(checkPassword).toBe(true)
+  })
+
+  test("reject update with matching token but incorrect original password", async () => {
+    const oldMatchedUser = await User.findOne({ username: "third_username" })
+    expect(oldMatchedUser).not.toBe(null)
+
+    const updatedUser = {
+      username: newUser.username,
+      oldPassword: "incorrect_original_password",
+      password: "fourth_password",
+      items: []
+    }
+
+    await api
+      .put(`/api/users/${oldMatchedUser._id}`)
+      .set("Authorization", `bearer ${tokens[0]}`)
+      .send(updatedUser)
+      .expect(401)
+
+    const newMatchedUser = await User.findById(oldMatchedUser._id)
+    expect(newMatchedUser).not.toBe(null)
+    expect(newMatchedUser.username).toEqual(oldMatchedUser.username)
+    expect(newMatchedUser.password).toEqual(oldMatchedUser.password)
+    expect(Array.from([...newMatchedUser.items])).toHaveLength(Array.from([...oldMatchedUser.items]).length)
+    expect(Array.from([...newMatchedUser.items])).toEqual(Array.from([...oldMatchedUser.items]))
   })
 
   test("reject update without token", async () => {

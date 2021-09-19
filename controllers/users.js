@@ -83,23 +83,32 @@ usersRouter.put("/:id", userExtractor, async (request, response) => {
 
   const body = request.body
 
-  let updatedPassword = undefined
-  let checkPassword = await bcrypt.compare(body.password, matchedUser.password)
-
+  // User must provide their original password before they can change to a new one
+  let checkPassword = await bcrypt.compare(body.oldPassword, matchedUser.password)
   if (!checkPassword) {
+    return response.status(401).json({ error: "invalid original password" })
+  }
+
+  let updatedPassword = undefined
+  checkPassword = await bcrypt.compare(body.password, matchedUser.password)
+
+  // Meaning it's not the same password, aka updated
+  if (!checkPassword) {
+    // hashing the new password
     const salt = 10
     updatedPassword = await bcrypt.hash(body.password, salt)
   }
   else {
+    // password hasn't change
     updatedPassword = matchedUser.password
   }
 
   const result = await User.findByIdAndUpdate(
     request.params.id,
     {
-      username: body.username,
+      username: body.username || matchedUser.username,
       password: updatedPassword,
-      items: body.items || []
+      items: body.items || matchedUser.items,
     },
     {
       new: true,
