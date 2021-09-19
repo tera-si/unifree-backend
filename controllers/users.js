@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt")
 const usersRouter = require("express").Router()
 const logger = require("../utils/logger")
 const User = require("../models/user")
+const userExtractor = require("../utils/middlewares").userExtractor
 
 const populateConfig = {
   _id: 1,
@@ -59,6 +60,7 @@ usersRouter.get("/:id", async (request, response) => {
   }
 })
 
+// TODO: 1. use userExtractor middleware
 usersRouter.delete("/:id", async (request, response) => {
   await User.findByIdAndDelete(request.params.id)
   response.status(204).end()
@@ -66,13 +68,22 @@ usersRouter.delete("/:id", async (request, response) => {
 
 // TODO: 1. use userExtractor middleware
 // TODO: 2. ensure that only user with matching id can update user info
-usersRouter.put("/:id", async (request, response) => {
-  const body = request.body
+usersRouter.put("/:id", userExtractor, async (request, response) => {
+  const user = request.user
+  if (!user) {
+    return response.status(401).json({ error: "missing or invalid token" })
+  }
 
   const matchedUser = await User.findById(request.params.id)
   if (!matchedUser) {
-    return response.status(404).end()
+    return response.status(404).end({ error: "no such user" })
   }
+
+  if (JSON.stringify(matchedUser._id) !== JSON.stringify(user._id)) {
+    return response.status(403).json({ error: "not authorized for this action" })
+  }
+
+  const body = request.body
 
   let updatedPassword = undefined
   let checkPassword = await bcrypt.compare(body.password, matchedUser.password)
