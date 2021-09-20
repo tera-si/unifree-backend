@@ -28,7 +28,7 @@ mongoose
 app.use(cors())
 app.use(express.json())
 app.use(express.static("public"))
-app.use(middlewares.morgan("tiny"))
+app.use(middlewares.morgan("combined"))
 app.use(middlewares.tokenExtractor)
 
 // TODO: check if there are any other places that needs to use mongoose.populate
