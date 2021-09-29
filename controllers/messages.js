@@ -14,16 +14,14 @@ const setup = (httpServer) => {
    * @returns the index, or -1 if not found
    */
   const _socketIndex = (userId) => {
-    let index = -1
-
     for (let i = 0; i < connectedUsers.length; i++) {
       const user = connectedUsers[i]
       if (Object.prototype.hasOwnProperty.call(user, `${userId}`)) {
-        index = i
+        return i
       }
     }
 
-    return index
+    return -1
   }
 
   const io = new Server(httpServer, {
@@ -87,8 +85,14 @@ const setup = (httpServer) => {
     //? populate ?//
     //* fetch all old, stored message when the user first connect *//
     const promises = [
-      Message.find({ sentFrom: socket.userId }).exec(),
-      Message.find({ sentTo: socket.userId }).exec()
+      Message.find({ sentFrom: socket.userId })
+        .populate("sentFrom", { username: 1, _id: 1 })
+        .populate("sentTo", { username: 1, _id: 1 })
+        .exec(),
+      Message.find({ sentTo: socket.userId })
+        .populate("sentFrom", { username: 1, _id: 1 })
+        .populate("sentTo", { username: 1, _id: 1 })
+        .exec()
     ]
 
     Promise.all(promises)
@@ -101,7 +105,7 @@ const setup = (httpServer) => {
     //* end of fetch all old messages *//
 
     //* Listen when a new private message was sent *//
-    socket.on("private message", (message) => {
+    socket.on("privateMessage", (message) => {
       // Saving the message to database
       const newMessage = new Message({
         dateSent: new Date(),
@@ -112,11 +116,11 @@ const setup = (httpServer) => {
       })
 
       newMessage.save()
-        .then(() => {
+        .then((savedMessage) => {
           // Then sent the message to the correct recipient
-          io.to(message.to).emit("private message", {
-            content: message.content,
-            to: message.to
+          index = _socketIndex(message.to)
+          io.to(connectedUsers[index][message.to]).emit("privateMessage", {
+            message: savedMessage
           })
         })
     })
