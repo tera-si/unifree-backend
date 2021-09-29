@@ -1,9 +1,11 @@
 const app = require("./app")
+const { createServer } = require("http")
 const envConfig = require("./utils/envConfig")
 const logger = require("./utils/logger")
+const messageSetup = require("./controllers/messages")
 
-// TODO: use both http and https
+const httpServer = createServer(app)
+messageSetup(httpServer)
 
-app.listen(envConfig.PORT, () => {
-  logger.info(`uniFree server running on PORT ${envConfig.PORT}`)
-})
+httpServer.listen(envConfig.PORT)
+logger.info(`uniFree server running on PORT ${envConfig.PORT}`)
