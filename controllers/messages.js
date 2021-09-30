@@ -24,6 +24,10 @@ const setup = (httpServer) => {
     return -1
   }
 
+  // io is the socket server itself. If you need to do routing (e.g. redirect
+  // private message to the correct recipient), use it
+  // socket is the individual connection (users), call it when you need to
+  // perform actions on the individual users
   const io = new Server(httpServer, {
     cors: {
       origin: "http://localhost:3000"
@@ -117,11 +121,16 @@ const setup = (httpServer) => {
 
       newMessage.save()
         .then((savedMessage) => {
-          // Then sent the message to the correct recipient
-          index = _socketIndex(message.to)
-          io.to(connectedUsers[index][message.to]).emit("privateMessage", {
-            message: savedMessage
-          })
+          savedMessage
+            .populate("sentFrom", { username: 1, _id: 1 })
+            .populate("sentTo", { username: 1, _id: 1 })
+            .execPopulate()
+            .then((populatedMessage) => {
+              index = _socketIndex(message.to)
+              io.to(connectedUsers[index][message.to]).emit("privateMessage", {
+                message: populatedMessage
+              })
+            })
         })
     })
 
