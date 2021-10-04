@@ -28,9 +28,10 @@ const setup = (httpServer) => {
   // private message to the correct recipient), use it
   // socket is the individual connection (users), call it when you need to
   // perform actions on the individual users
+  //! change the origin when in production
   const io = new Server(httpServer, {
     cors: {
-      origin: "http://localhost:3000"
+      origin: "http://192.168.1.9:3000"
     },
   })
 
@@ -127,9 +128,12 @@ const setup = (httpServer) => {
             .execPopulate()
             .then((populatedMessage) => {
               index = _socketIndex(message.to)
-              io.to(connectedUsers[index][message.to]).emit("privateMessage", {
-                message: populatedMessage
-              })
+
+              if (index !== -1) {
+                io.to(connectedUsers[index][message.to]).emit("privateMessage", {
+                  message: populatedMessage
+                })
+              }
             })
         })
     })
