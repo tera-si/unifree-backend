@@ -5,7 +5,7 @@ const Message = require("../models/message")
 const logger = require("../utils/logger")
 
 const setup = (httpServer) => {
-  // to hold mappings of socket.id: userID
+  // to hold mappings of userId: socketId
   const connectedUsers = []
 
   /**
@@ -75,6 +75,7 @@ const setup = (httpServer) => {
 
   io.on("connection", (socket) => {
     logger.info(`Socket ${socket.id}-${socket.userId} has connected`)
+    socket.removeAllListeners()
 
     // mapping the socket.id to userId
     const idMapping = {}
@@ -139,6 +140,10 @@ const setup = (httpServer) => {
     })
 
     //? disconnect user ?//
+    socket.on("disconnect", () => {
+      logger.info(`Socket ${socket.id}-${socket.userId} has disconnected`)
+      socket.removeAllListeners()
+    })
   })
 }
 
