@@ -73,6 +73,7 @@ const setup = (httpServer) => {
     next()
   })
 
+  // The `removeAllListeners()` are to prevent duplicate emits
   io.on("connection", (socket) => {
     logger.info(`Socket ${socket.id}-${socket.userId} has connected`)
     socket.removeAllListeners()
@@ -88,7 +89,6 @@ const setup = (httpServer) => {
       connectedUsers[index] = idMapping
     }
 
-    //? populate ?//
     //* fetch all old, stored message when the user first connect *//
     const promises = [
       Message.find({ sentFrom: socket.userId })
@@ -139,7 +139,7 @@ const setup = (httpServer) => {
         })
     })
 
-    //? disconnect user ?//
+    //* Handle when socket disconnect *//
     socket.on("disconnect", () => {
       logger.info(`Socket ${socket.id}-${socket.userId} has disconnected`)
       socket.removeAllListeners()
