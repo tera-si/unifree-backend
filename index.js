@@ -9,3 +9,6 @@ messageSetup(httpServer)
 
 httpServer.listen(envConfig.PORT)
 logger.info(`uniFree server running on PORT ${envConfig.PORT}`)
+
+// FIXME: Message schema change `newMessage` to `readBySender` and
+// `readByReceiver`, both Boolean values

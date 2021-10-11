@@ -139,6 +139,12 @@ const setup = (httpServer) => {
         })
     })
 
+    //* Handle client's affirmation that message is read *//
+    socket.on("markAsRead", (userId) => {
+      Message.updateMany({ sentFrom: userId, sentTo: socket.userId }, { newMessage: false })
+        .then(() => {})
+    })
+
     //* Handle when socket disconnect *//
     socket.on("disconnect", () => {
       logger.info(`Socket ${socket.id}-${socket.userId} has disconnected`)
