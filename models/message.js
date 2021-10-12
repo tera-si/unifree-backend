@@ -1,5 +1,7 @@
 const mongoose = require("mongoose")
 
+//! readBySender is probably not needed
+
 const messageSchema = new mongoose.Schema({
   dateSent: {
     type: Date,
