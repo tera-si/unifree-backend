@@ -118,7 +118,8 @@ const setup = (httpServer) => {
         sentFrom: socket.userId,
         content: message.content,
         sentTo: message.to,
-        newMessage: true
+        readByReceiver: false,
+        readBySender: true,
       })
 
       newMessage.save()
@@ -141,7 +142,7 @@ const setup = (httpServer) => {
 
     //* Handle client's affirmation that message is read *//
     socket.on("markAsRead", (userId) => {
-      Message.updateMany({ sentFrom: userId, sentTo: socket.userId }, { newMessage: false })
+      Message.updateMany({ sentFrom: userId, sentTo: socket.userId }, { readByReceiver: true })
         .then(() => {})
     })
 

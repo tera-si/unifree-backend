@@ -17,7 +17,11 @@ const messageSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User"
   },
-  newMessage: {
+  readByReceiver: {
+    type: Boolean,
+    required: [true, "message status is required"]
+  },
+  readBySender: {
     type: Boolean,
     required: [true, "message status is required"]
   }
