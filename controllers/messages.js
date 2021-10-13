@@ -31,7 +31,7 @@ const setup = (httpServer) => {
   //! change the origin when in production
   const io = new Server(httpServer, {
     cors: {
-      origin: "http://192.168.1.9:3000"
+      origin: `http://${process.env.FRONTEND_ADDRESS}:3000`
     },
   })
 
