@@ -40,30 +40,48 @@ const setup = (httpServer) => {
     const auth = socket.handshake.auth
 
     if (!auth) {
+      logger.error(`Error: socket ${socket.id} authentication not found`)
+      socket._error("missing or invalid authentication")
+      socket.disconnect()
       return next(new Error("missing or invalid authentication"))
     }
 
     let token = auth.token
     if (!token) {
+      logger.error(`Error: token not found in socket ${socket.id} authentication`)
+      socket._error("missing or invalid token")
+      socket.disconnect()
       return next(new Error("missing or invalid token"))
     }
 
     const decoded = jwt.verify(token, process.env.SECRET_KEY)
     if (!decoded.id) {
+      logger.error(`Error: user ID not found in socket ${socket.id} authentication`)
+      socket._error("missing or invalid token")
+      socket.disconnect()
       return next(new Error("missing or invalid token"))
     }
 
     User.findById(decoded.id)
       .then(matchedUser => {
         if (!matchedUser) {
+          logger.error(`Error: no matching user in socket ${socket.id} authentication`)
+          socket._error("missing or invalid authentication")
+          socket.disconnect()
           return next(new Error("missing or invalid authentication"))
         }
 
-        if (matchedUser._id !== auth.userId) {
+        if (matchedUser.id !== auth.userId) {
+          logger.error(`Error: socket ${socket.id} authentication and user profile does not match`)
+          socket._error("missing or invalid authentication")
+          socket.disconnect()
           return next(new Error("missing or invalid authentication"))
         }
 
         if (matchedUser.username !== auth.username) {
+          logger.error(`Error: socket ${socket.id} authentication and user profile does not match`)
+          socket._error("missing or invalid authentication")
+          socket.disconnect()
           return next(new Error("missing or invalid authentication"))
         }
       })
