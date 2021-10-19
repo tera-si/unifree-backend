@@ -60,12 +60,6 @@ usersRouter.get("/:id", async (request, response) => {
   }
 })
 
-// TODO: 1. use userExtractor middleware
-usersRouter.delete("/:id", async (request, response) => {
-  await User.findByIdAndDelete(request.params.id)
-  response.status(204).end()
-})
-
 usersRouter.put("/:id", userExtractor, async (request, response) => {
   const user = request.user
   if (!user) {
