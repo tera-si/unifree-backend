@@ -9,6 +9,7 @@ const middlewares = require("./utils/middlewares")
 const usersRouter = require("./controllers/users")
 const loginRouter = require("./controllers/login")
 const itemsRouter = require("./controllers/items")
+const tradeHistoryRouter = require("./controllers/tradeHistory")
 
 logger.info(`Connecting to MongoDB @ ${envConfig.MONGODB_URI}`)
 
@@ -34,6 +35,7 @@ app.use(middlewares.tokenExtractor)
 app.use("/api/users", usersRouter)
 app.use("/api/login", loginRouter)
 app.use("/api/items", itemsRouter)
+app.use("/api/tradehistory", tradeHistoryRouter)
 
 app.use(middlewares.unknownEndpoint)
 app.use(middlewares.errorHandler)
