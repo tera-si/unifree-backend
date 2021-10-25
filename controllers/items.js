@@ -54,12 +54,15 @@ itemsRouter.get("/", async (request, response) => {
 itemsRouter.get("/:id", async (request, response) => {
   const matchedItem = await Item.findById(request.params.id).populate("postedBy", { username: 1, _id: 1 })
 
-  if (matchedItem) {
-    response.status(200).json(matchedItem)
+  if (!matchedItem) {
+    return response.status(404).end()
   }
-  else {
-    response.status(404).end()
+
+  if (!matchedItem.availability) {
+    return response.status(400).json({ error: "archived item" })
   }
+
+  response.status(200).json(matchedItem)
 })
 
 // TODO: not yet tested
