@@ -5,6 +5,7 @@ const Item = require("../models/item")
 const TradeHistory = require("../models/tradeHistory")
 const userHelper = require("./users_helpers")
 const itemHelper = require("./items_helpers")
+const tradeHistoryHelper = require("./tradeHistory_helper")
 const app = require("../app")
 const api = supertest(app)
 
@@ -141,6 +142,102 @@ describe("GET from /api/tradehistory", () => {
 })
 
 describe("GET from /api/tradehistory/:id", () => {
+  test("entries are returned as JSON", async () => {
+    const inDB = await TradeHistory.find({})
+
+    await api
+      .get(`/api/tradehistory/${inDB[0]._id}`)
+      .set("Authorization", `bearer ${tokens[0]}`)
+      .expect(200)
+      .expect("Content-Type", /application\/json/)
+  })
+
+  test("correctly returned first entry", async () => {
+    const inDB = await TradeHistory.find({})
+
+    const response = await api
+      .get(`/api/tradehistory/${inDB[0]._id}`)
+      .set("Authorization", `bearer ${tokens[0]}`)
+      .expect(200)
+
+    expect(response.body).toBeDefined()
+    expect(response.body.dateDelisted).toBeDefined()
+    expect(response.body.id).toBeDefined()
+
+    const receivedObj = { ...response.body }
+    delete receivedObj.id
+    delete receivedObj.dateDelisted
+
+    const expectedObj = {
+      itemOwner: {
+        username: userHelper.initialUsers[0].username,
+        id: userIDs[0]
+      },
+      item: {
+        name: itemHelper.initialItems[0].name,
+        id: itemIDs[0]
+      },
+      tradedWith: {
+        username: userHelper.initialUsers[1].username,
+        id: userIDs[1]
+      },
+    }
+
+    expect(JSON.stringify(receivedObj)).toEqual(JSON.stringify(expectedObj))
+  })
+
+  test("reject non-existent ID with 404", async () => {
+    const id = await tradeHistoryHelper.nonExistentHistoryID(userIDs[0], itemIDs[0], userIDs[1])
+
+    await api
+      .get(`/api/tradehistory/${id}`)
+      .set("Authorization", `bearer ${tokens[0]}`)
+      .expect(404)
+  })
+
+  test("reject invalid ID with 400", async () => {
+    await api
+      .get("/api/tradehistory/@@@")
+      .set("Authorization", `bearer ${tokens[0]}`)
+      .expect(400)
+  })
+
+  test("reject request without token", async () => {
+    const inDB = await TradeHistory.find({})
+
+    await api
+      .get(`/api/tradehistory/${inDB[0]._id}`)
+      .expect(401)
+  })
+
+  test("reject requests with invalid token", async () => {
+    const inDB = await TradeHistory.find({})
+
+    await api
+      .get(`/api/tradehistory/${inDB[0]._id}`)
+      .set("Authorization", `bearer ${tokens[0].substring(4)}`)
+      .expect(401)
+
+    await api
+      .get(`/api/tradehistory/${inDB[0]._id}`)
+      .set("Authorization", `bearer abc123`)
+      .expect(401)
+
+    await api
+      .get(`/api/tradehistory/${inDB[0]._id}`)
+      .set("Authorization", `bearer @@@`)
+      .expect(401)
+
+    await api
+      .get(`/api/tradehistory/${inDB[0]._id}`)
+      .set("Authorization", `basic ${tokens[0]}`)
+      .expect(401)
+
+    await api
+      .get(`/api/tradehistory/${inDB[0]._id}`)
+      .set("Authorization", `${tokens[0]}`)
+      .expect(401)
+  })
 })
 
 afterAll(() => {
