@@ -111,6 +111,36 @@ describe("GET from /api/tradehistory", () => {
       .get("/api/tradehistory")
       .expect(401)
   })
+
+  test("reject requests with invalid token", async () => {
+    await api
+      .get("/api/tradehistory")
+      .set("Authorization", `bearer ${tokens[0].substring(4)}`)
+      .expect(401)
+
+    await api
+      .get("/api/tradehistory")
+      .set("Authorization", `bearer abc123`)
+      .expect(401)
+
+    await api
+      .get("/api/tradehistory")
+      .set("Authorization", `bearer @@@`)
+      .expect(401)
+
+    await api
+      .get("/api/tradehistory")
+      .set("Authorization", `basic ${tokens[0]}`)
+      .expect(401)
+
+    await api
+      .get("/api/tradehistory")
+      .set("Authorization", `${tokens[0]}`)
+      .expect(401)
+  })
+})
+
+describe("GET from /api/tradehistory/:id", () => {
 })
 
 afterAll(() => {
