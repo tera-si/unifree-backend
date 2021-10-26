@@ -58,7 +58,7 @@ beforeEach(async () => {
 })
 
 describe("GET from /api/tradehistory", () => {
-  test("items are returned as JSON when token was provided", async () => {
+  test("entries are returned as JSON when token was provided", async () => {
     await api
       .get("/api/tradehistory")
       .set("Authorization", `bearer ${tokens[0]}`)
@@ -66,7 +66,7 @@ describe("GET from /api/tradehistory", () => {
       .expect("Content-Type", /application\/json/)
   })
 
-  test("successfully returned all items when token was provided", async () => {
+  test("successfully returned all entries when token was provided", async () => {
     const response = await api
       .get("/api/tradehistory")
       .set("Authorization", `bearer ${tokens[0]}`)
@@ -74,7 +74,7 @@ describe("GET from /api/tradehistory", () => {
     expect(response.body).toHaveLength(2)
   })
 
-  test("correctly returned first item when token was provided", async () => {
+  test("correctly returned first entry when token was provided", async () => {
     const response = await api
       .get("/api/tradehistory")
       .set("Authorization", `bearer ${tokens[1]}`)
