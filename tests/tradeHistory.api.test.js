@@ -28,11 +28,32 @@ beforeAll(async () => {
     userIDs.push(response.body.id)
   }
 
-  for (let item of itemHelper.initialItems) {
-    const itemObj = new Item(item)
-    const response = await itemObj.save()
+  const thirdUser = {
+    username: "third_username",
+    password: "third_password",
+    items: []
+  }
 
-    itemIDs.push(response._id)
+  await api.post("/api/users").send(thirdUser)
+  const response = await api.post("/api/login").send(thirdUser)
+  tokens.push(response.body.token)
+  userIDs.push(response.body.id)
+
+  let i = 0
+  for (let item of itemHelper.initialItems) {
+    const response = await api
+      .post("/api/items")
+      .set("Authorization", `bearer ${tokens[i]}`)
+      .field("item-name", item.name)
+      .field("item-category", item.category)
+      .field("item-condition", item.condition)
+      .field("item-shipping", item.shipping)
+      .field("item-meet", item.meet)
+      .field("item-description", item.description)
+      .attach("item-images", `tests/images/post_items/${item.imagePaths[0]}`)
+
+    itemIDs.push(response.body.id)
+    i++
   }
 }, 20000)
 
@@ -184,6 +205,15 @@ describe("GET from /api/tradehistory/:id", () => {
     }
 
     expect(JSON.stringify(receivedObj)).toEqual(JSON.stringify(expectedObj))
+  })
+
+  test("reject request to history user didn't take part in", async () => {
+    const inDB = await TradeHistory.find({})
+
+    await api
+      .get(`/api/tradehistory/${inDB[0]._id}`)
+      .set("Authorization", `bearer ${tokens[2]}`)
+      .expect(403)
   })
 
   test("reject non-existent ID with 404", async () => {
