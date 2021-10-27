@@ -12,6 +12,22 @@ tradeHistoryRouter.post("/", userExtractor, async (request, response) => {
 
   const body = request.body
 
+  if (!body.item) {
+    return response.status(400).json({ error: "missing item data" })
+  }
+
+  if (!body.tradedWith) {
+    return response.status(400).json({ error: "missing user data" })
+  }
+
+  if (JSON.stringify(body.tradedWith) === "-1") {
+    return response.status(400).json({ error: "invalid user selected" })
+  }
+
+  if (JSON.stringify(user._id) === JSON.stringify(body.tradedWith)) {
+    return response.status(400).json({ error: "item owner same as user traded with" })
+  }
+
   const matchedItem = await Item.findById(body.item)
   if (!matchedItem) {
     return response.status(404).json({ error: "no such item" })
@@ -19,6 +35,10 @@ tradeHistoryRouter.post("/", userExtractor, async (request, response) => {
 
   if (JSON.stringify(user._id) !== JSON.stringify(matchedItem.postedBy)) {
     return response.status(403).json({ error: "not authorized for this action" })
+  }
+
+  if (!matchedItem.availability) {
+    return response.status(400).json({ error: "archived item" })
   }
 
   const matchedUser = await User.findById(body.tradedWith)
