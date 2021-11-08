@@ -1,7 +1,9 @@
 const itemsRouter = require("express").Router()
 const userExtractor = require("../utils/middlewares").userExtractor
 const multerUpload = require("../utils/middlewares").multerUpload
+const logger = require("../utils/logger")
 const Item = require("../models/item")
+const fileSystem = require("fs")
 
 itemsRouter.post("/", [multerUpload, userExtractor], async (request, response) => {
   const user = request.user
@@ -65,8 +67,6 @@ itemsRouter.get("/:id", async (request, response) => {
   response.status(200).json(matchedItem)
 })
 
-// TODO: not yet tested
-//? delete associated pictures ?//
 itemsRouter.delete("/:id", userExtractor, async (request, response) => {
   const user = request.user
   if (!user) {
@@ -78,8 +78,22 @@ itemsRouter.delete("/:id", userExtractor, async (request, response) => {
     response.status(404).json({ error: "no such item" })
   }
 
-  if (matchedItem.postedBy !== user._id) {
+  if (JSON.stringify(matchedItem.postedBy) !== JSON.stringify(user._id)) {
     return response.status(403).json({ error: "not authorized for this action" })
+  }
+
+  if (!matchedItem.availability) {
+    return response.status(400).json({ error: "archived item" })
+  }
+
+  const imagePaths = matchedItem.imagePaths
+  for (let i = 0; i < imagePaths.length; i++) {
+    await fileSystem.unlink(`${process.cwd()}/public/uploads/items/images/${imagePaths[i]}`, (e) => {
+      if (e) {
+        logger.error(e)
+        return response.status(500).json({ error: "Unable to delete item" })
+      }
+    })
   }
 
   await matchedItem.delete()

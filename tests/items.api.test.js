@@ -475,7 +475,132 @@ describe("PUT to /api/items/:id", () => {
   })
 })
 
-// TODO: DELETE item
+describe("DELETE from /api/item/:id", () => {
+  test("Successfully deleted item with matching token", async () => {
+    const objectID = []
+    const response = await api
+      .post("/api/items")
+      .set("Authorization", `bearer ${tokens[0]}`)
+      .field("item-name", "vintage film camera")
+      .field("item-category", "Camera")
+      .field("item-condition", "Visible wear")
+      .field("item-shipping", "false")
+      .field("item-meet", "true")
+      .field("item-description", "No idea if it works.")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1203803.jpg")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1983037.jpg")
+
+    objectID.push(JSON.parse(response.text).id)
+
+    await api
+      .delete(`/api/items/${objectID[0]}`)
+      .set("Authorization", `bearer ${tokens[0]}`)
+      .expect(204)
+
+    const matchedItem = await Item.findById(objectID[0])
+    expect(matchedItem).toBeNull()
+
+    const result = await itemsHelper.allItemsFromDB()
+    expect(result).toHaveLength(itemsHelper.initialItems.length)
+  })
+
+  test("reject delete request without token", async () => {
+    const objectID = []
+    const response = await api
+      .post("/api/items")
+      .set("Authorization", `bearer ${tokens[0]}`)
+      .field("item-name", "vintage film camera")
+      .field("item-category", "Camera")
+      .field("item-condition", "Visible wear")
+      .field("item-shipping", "false")
+      .field("item-meet", "true")
+      .field("item-description", "No idea if it works.")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1203803.jpg")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1983037.jpg")
+
+    objectID.push(JSON.parse(response.text).id)
+
+    await api
+      .delete(`/api/items/${objectID[0]}`)
+      .expect(401)
+
+    const matchedItem = await Item.findById(objectID[0])
+    expect(matchedItem).toBeDefined()
+
+    const result = await itemsHelper.allItemsFromDB()
+    expect(result).toHaveLength(itemsHelper.initialItems.length + 1)
+  })
+
+  test("reject delete request with non matching token", async () => {
+    const objectID = []
+    const response = await api
+      .post("/api/items")
+      .set("Authorization", `bearer ${tokens[0]}`)
+      .field("item-name", "vintage film camera")
+      .field("item-category", "Camera")
+      .field("item-condition", "Visible wear")
+      .field("item-shipping", "false")
+      .field("item-meet", "true")
+      .field("item-description", "No idea if it works.")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1203803.jpg")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1983037.jpg")
+
+    objectID.push(JSON.parse(response.text).id)
+
+    await api
+      .delete(`/api/items/${objectID[0]}`)
+      .set("Authorization", `bearer ${tokens[1]}`)
+      .expect(403)
+
+    const matchedItem = await Item.findById(objectID[0])
+    expect(matchedItem).toBeDefined()
+
+    const result = await itemsHelper.allItemsFromDB()
+    expect(result).toHaveLength(itemsHelper.initialItems.length + 1)
+  })
+
+  //* This test requires PUT /api/items/:id to be functional and correct *//
+  test("reject request to delete archived item", async () => {
+    const objectID = []
+    const response = await api
+      .post("/api/items")
+      .set("Authorization", `bearer ${tokens[0]}`)
+      .field("item-name", "vintage film camera")
+      .field("item-category", "Camera")
+      .field("item-condition", "Visible wear")
+      .field("item-shipping", "false")
+      .field("item-meet", "true")
+      .field("item-description", "No idea if it works.")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1203803.jpg")
+      .attach("item-images", "tests/images/post_items/vintage-camera-pexels-alex-andrews-1983037.jpg")
+
+    objectID.push(JSON.parse(response.text).id)
+
+    const original = await api.get(`/api/items/${objectID[0]}`)
+
+    const updated = {
+      ...original,
+      availability: false
+    }
+
+    await api
+      .put(`/api/items/${objectID[0]}`)
+      .set("Authorization", `bearer ${tokens[0]}`)
+      .send(updated)
+      .expect(200)
+
+    await api
+      .delete(`/api/items/${objectID[0]}`)
+      .set("Authorization", `bearer ${tokens[0]}`)
+      .expect(400)
+
+    const matchedItem = await Item.findById(objectID[0])
+    expect(matchedItem).toBeDefined()
+
+    const result = await itemsHelper.allItemsFromDB()
+    expect(result).toHaveLength(itemsHelper.initialItems.length + 1)
+  })
+})
 
 afterAll(() => {
   mongoose.connection.close()
