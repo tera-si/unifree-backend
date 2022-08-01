@@ -5,6 +5,10 @@ Backend server for my [uniFree frontend](https://github.com/tera-si/unifree), a 
 Like a e-commerce site or ebay, but no price tags are attached to the items.
 I have since moved on to learning cyber security, **this project is no longer being developed or maintained**.
 
+## What's Unfinished?
+
+- The backend was fully completed, just the frontend isn't
+
 # Built with
 
 - express
